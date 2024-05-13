@@ -13,6 +13,18 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\Users\\robin.huebner\\personal_repo\\property-calculation-web-app\\web-application\\wwwroot\\images\\corporate_identity.png",
+      "PackagePath": "staticwebassets\\images\\corporate_identity.png"
+    },
+    {
+      "Id": "C:\\Users\\robin.huebner\\personal_repo\\property-calculation-web-app\\web-application\\wwwroot\\images\\favicon.png",
+      "PackagePath": "staticwebassets\\images\\favicon.png"
+    },
+    {
+      "Id": "C:\\Users\\robin.huebner\\personal_repo\\property-calculation-web-app\\web-application\\wwwroot\\images\\logo.png",
+      "PackagePath": "staticwebassets\\images\\logo.png"
+    },
+    {
       "Id": "C:\\Users\\robin.huebner\\personal_repo\\property-calculation-web-app\\web-application\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },

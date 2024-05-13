@@ -1,8 +1,158 @@
 ﻿@page
-@model Calculator
+@model CalculatorModel
 @{
-    ViewData["Title"] = "Calculate";
+    ViewData["Title"] = "Immobilie jetzt präzise, vollständig und AI unterstützt kalkulieren.";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to calculate real estate investments.</p>
+<head>
+    <link rel="icon" type="image/png" href="~/images/favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immobilienkalkulator</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            /* Zentriert horizontal */
+            align-items: flex-start;
+            /* Startet am oberen Rand des Viewports */
+            min-height: 100vh;
+            padding: 20px 0;
+            /* Gibt etwas Raum oben und unten */
+        }
+
+        .header-bar {
+            background-color: #0E2442;
+            /* Dark blue background */
+            color: white;
+            /* White text color */
+            padding: 10px 20px;
+            /* Padding for some spacing around the text */
+            margin-top: 20px;
+            /* Top margin for spacing from other elements */
+            border-radius: 5px;
+            /* Rounded corners for aesthetics */
+            text-align: center;
+            /* Center the text within the bar */
+            font-size: 1.2em;
+            /* Slightly larger text for headers */
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 95%;
+            max-width: 800px;
+        }
+
+        .logo-container {
+            background-color: #0E2442;
+            /* Background color for the logo container */
+            padding: 10px 0;
+            /* Padding around the logo */
+            margin-bottom: 30px;
+            /* Weißer Abstand unter dem Container */
+        }
+
+        .logo {
+            width: 250px;
+            /* Fixed width for the logo */
+            margin: auto;
+            /* Center the logo horizontally */
+        }
+
+        .cta {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #000000;
+            /* Text color set to black */
+        }
+
+        form {
+            display: grid;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            color: #000000;
+            /* Text color for inputs */
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            color: white;
+            background-color: #0E2442;
+            /* Button color set to logo color */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #092c3f;
+            /* Darker shade for button hover state */
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            /* Erzeugt zwei Spalten */
+            gap: 20px;
+            /* Abstand zwischen den Spalten und Zeilen */
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="/images/logo.png" alt="Logo" class="logo">
+        </div>
+        <div class="cta">Jetzt mit IMMOVESTION präzise und schnell das nächste Immobilieninvestment kalkulieren. </div>
+        <!-- Input header bar -->
+        <div class="header-bar">
+            Eingabe
+        </div>
+        <form method="post">
+            <input type="text" asp-for="Property.PropertyName" placeholder="Name des Eigentums" required>
+            <input type="number" asp-for="Property.PurchasePrice" placeholder="Kaufpreis" required>
+            <input type="number" asp-for="Property.Equity" placeholder="Eigenkapital" required>
+            <select asp-for="Property.Purpose" required>
+                <option value="">Zweck der Immobilie</option>
+                <option value="self_use">Eigennutzung</option>
+                <option value="rental">Vermietung</option>
+            </select>
+            <input type="number" asp-for="Property.ExpectedRent"
+                placeholder="Erwartete Mieteinnahmen (falls Vermietung)">
+            <input type="number" asp-for="Property.LoanTerm" placeholder="Laufzeit des Kredits (in Jahren)" required>
+            <input type="number" asp-for="Property.InterestRate" placeholder="Zinssatz des Kredits (%)" required>
+            <input type="number" asp-for="Property.TotalArea" placeholder="Gesamtfläche in m²" required>
+            <button type="submit" asp-page-handler="Calculate">Berechnen</button>
+            <button type="submit" asp-page-handler="Clear">Eingaben löschen</button>
+        </form>
+        <div class="header-bar">
+            Resultate
+        </div>
+        <div>
+            <label>Kosten je Quadratmeter: </label>
+            <span>@Model.CostPerSquareMeter €/m²</span>
+        </div>
+        <div class="header-bar">
+            AI unterstützte Empfehlung
+        </div>
+
+    </div>
+</body>
