@@ -1,7 +1,7 @@
 ﻿@page
 @model CalculatorModel
 @{
-    ViewData["Title"] = "Immobilie jetzt präzise, vollständig und AI unterstützt kalkulieren.";
+    ViewData["Title"] = "immovestion";
 }
 
 <head>
@@ -9,6 +9,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Immobilienkalkulator</title>
+    <script src="
+    https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js
+    "></script>
     <style>
         body {
             display: flex;
@@ -121,27 +124,36 @@
         <div class="logo-container">
             <img src="/images/logo.png" alt="Logo" class="logo">
         </div>
-        <div class="cta">Jetzt mit IMMOVESTION präzise und schnell das nächste Immobilieninvestment kalkulieren. </div>
+        <div class="cta">Jetzt mit IMMOVESTION präzise, schnell und AI-unterstützt, das nächste Immobilieninvestment kalkulieren. </div>
         <!-- Input header bar -->
         <div class="header-bar">
             Eingabe
         </div>
         <form method="post">
-            <input type="text" asp-for="Property.PropertyName" placeholder="Name des Eigentums" required>
-            <input type="number" asp-for="Property.PurchasePrice" placeholder="Kaufpreis" required>
-            <input type="number" asp-for="Property.Equity" placeholder="Eigenkapital" required>
+            <input type="text" asp-for="Property.PropertyName" placeholder="Name des Objektes" value="Musterobjekt"
+                required>
+            <input type="text" id="startPeriodInput" placeholder="YYYY-MM" pattern="\d{4}-(0[1-9]|1[0-2])"
+                value="2024-01" required>
+            <input type="number" id="purchasePrice" asp-for="Property.PurchasePrice" placeholder="Kaufpreis"
+                value="500000" required>
+            <input type="number" id="equity" asp-for="Property.Equity" placeholder="Eigenkapital" value="50000"
+                required>
+            <input type="number" placeholder="Gewünschte monatliche Rate" value="5000" required>
             <select asp-for="Property.Purpose" required>
                 <option value="">Zweck der Immobilie</option>
                 <option value="self_use">Eigennutzung</option>
                 <option value="rental">Vermietung</option>
             </select>
             <input type="number" asp-for="Property.ExpectedRent"
-                placeholder="Erwartete Mieteinnahmen (falls Vermietung)">
-            <input type="number" asp-for="Property.LoanTerm" placeholder="Laufzeit des Kredits (in Jahren)" required>
-            <input type="number" asp-for="Property.InterestRate" placeholder="Zinssatz des Kredits (%)" required>
-            <input type="number" asp-for="Property.TotalArea" placeholder="Gesamtfläche in m²" required>
-            <button type="submit" asp-page-handler="Calculate">Berechnen</button>
-            <button type="submit" asp-page-handler="Clear">Eingaben löschen</button>
+                placeholder="Erwartete Mieteinnahmen (falls Vermietung)" value="1000">
+            <input type="number" id="loanTerm" asp-for="Property.LoanTerm"
+                placeholder="Laufzeit des Kredits (in Jahren)" value="5" required>
+            <input type="number" id="interestRate" asp-for="Property.InterestRate"
+                placeholder="Zinssatz des Kredits p.a. (%)" value="3.6" required>
+            <input type="number" asp-for="Property.TotalArea" placeholder="Gesamtfläche in m²" value="100" required>
+            <button type="button" onclick="updateChart()" onclick="validateInput()"
+                asp-page-handler="Calculate">Berechnen</button>
+            <button type="submit" asp-page-handler="Clear">Eingaben zurücksetzen</button>
         </form>
         <div class="header-bar">
             Resultate
@@ -150,9 +162,132 @@
             <label>Kosten je Quadratmeter: </label>
             <span>@Model.CostPerSquareMeter €/m²</span>
         </div>
-        <div class="header-bar">
-            AI unterstützte Empfehlung
-        </div>
 
     </div>
+    <button id="toggleMonthly">Monatsansicht</button>
+    <button id="toggleYearly">Jahresansicht</button>
+    <button onclick="toggleDataset(0)">Restschuld</button>
+    <button onclick="toggleDataset(1)">Zinsen</button>
+    <button onclick="toggleDataset(2)">Tilgung</button>
+    <div style="width: 800px;"><canvas id="NetPresentValueChart"></canvas></div>
+    <div class="header-bar">
+        AI Bankberater fragen
+    </div>
+    <div class="header-bar">
+        AI Steuerberater fragen
+    </div>
+    <div class="header-bar">
+        AI Architekten fragen
+    </div>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('NetPresentValueChart').getContext('2d');
+        const NetPresentValueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],  // This represents the label for your data point
+                datasets: [{
+                    label: 'Restschuld',  // Label for Remaining Debt
+                    data: [],  // Data points for Remaining Debt
+                    backgroundColor: 'rgba(14, 36, 66, 0.2)',  // Soft blue based on the corporate color
+                    borderColor: '#0E2442',  // Corporate blue color
+                    borderWidth: 2,  // Slightly thicker border for better visibility
+                    pointBackgroundColor: '#0E2442',  // Points color
+                    pointBorderColor: '#fff',  // White borders for the points
+                    pointBorderWidth: 1,  // Border width of the points
+                    pointRadius: 3,  // Radius of the points
+                    fill: true  // Fill the area under the line
+                }, {
+                    label: 'Zinsen',  // Label for Interest
+                    data: [],  // Data points for Interest
+                    backgroundColor: 'rgba(14, 36, 66, 0.5)',  // Slightly more opaque for distinction
+                    borderColor: '#0E2442',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#0E2442',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1,
+                    pointRadius: 3,
+                    fill: true
+                }, {
+                    label: 'Tilgung',  // Label for Amortization
+                    data: [],  // Data points for Amortization
+                    backgroundColor: 'rgba(14, 36, 66, 0.8)',  // Even more opaque to distinguish easily
+                    borderColor: '#0E2442',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#0E2442',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1,
+                    pointRadius: 3,
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        window.updateChart = function () {
+            console.log("updateChart called");
+            const startPeriodInputValue = new Date(startPeriodInput.value);
+            const interestRate = document.getElementById("interestRate").value / 100;
+            const loanTermInput = document.getElementById('loanTerm');
+            const equityInputValue = document.getElementById('equity').value;
+            const purchasePriceInputValue = document.getElementById('purchasePrice').value;
+            const debt = purchasePriceInputValue - equityInputValue;
+            const totalPeriods = loanTermInput.value * 12;
+            let periods = [];
+            let interestPayment = [];
+            let remainingDebt = [];
+            let amortization = [];
+            for (let i = 0; i < totalPeriods; i++) {
+                let currentPeriod = new Date(startPeriodInputValue);
+                currentPeriod.setMonth(startPeriodInputValue.getMonth() + i);
+                periods.push((currentPeriod.toLocaleDateString()).toString());  // Add each year as a string to the array
+            }
+            for (let i = 0; i < totalPeriods; i++) {
+                let currentRemainingDebt = 10000;
+                if (i == 0) {
+                    currentRemainingDebt = 50000;
+                } else {
+                    currentRemainingDebt = remainingDebt[i - 1] - amortization[i - 1];
+                }
+                let currentInterestPayment = (interestRate * currentRemainingDebt / 12);
+                let currentAmortization = 1000 - currentInterestPayment;
+
+                interestPayment.push(currentInterestPayment);
+                amortization.push(currentAmortization);
+                remainingDebt.push(currentRemainingDebt);
+            }
+            NetPresentValueChart.data.labels = periods;
+            NetPresentValueChart.data.datasets[0].data = remainingDebt;
+            NetPresentValueChart.data.datasets[1].data = interestPayment;
+            NetPresentValueChart.data.datasets[2].data = amortization;
+            NetPresentValueChart.update();
+        };
+
+        // Function to toggle datasets
+        function toggleDataset(datasetIndex) {
+            var dataset = NetPresentValueChart.data.datasets[datasetIndex];
+            dataset.hidden = !dataset.hidden; // Toggle visibility
+            NetPresentValueChart.update(); // Update chart to reflect the change
+        }
+    });
+</script>
+
+<script>
+    function validateInput() {
+        var input = document.getElementById('yearMonth').value;
+        var regex = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+        if (regex.test(input)) {
+            alert("Valid Input!");
+        } else {
+            alert("Invalid Input. Please enter the date in YYYY-MM format.");
+        }
+    }
+</script>
